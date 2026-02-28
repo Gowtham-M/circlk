@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: circlk
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      SECRET_KEY: change-me
+      JWT_SECRET_KEY: change-me-too
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/circlk
+      CORS_ORIGINS: http://localhost:5173
+      PLATFORM_FEE_PERCENT: 5.0
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
