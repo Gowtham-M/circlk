@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: circlk-backend
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: circlk
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PLATFORM_FEE_PERCENT
+        value: "5.0"
+      - key: OPENAI_API_KEY
+        sync: false
+
+  - type: web
+    name: circlk-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_BASE
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

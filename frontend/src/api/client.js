@@ -54,6 +54,10 @@ export const api = {
       body: JSON.stringify(payload),
       headers: { Authorization: `Bearer ${token}` },
     }),
+  myBookings: (token) =>
+    request("/my/bookings", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
   bookEvent: (id, payload, token) =>
     request(`/events/${id}/book`, {
       method: "POST",

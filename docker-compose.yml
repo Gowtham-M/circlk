@@ -1,22 +1,6 @@
 version: "3.9"
 
 services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: circlk
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d circlk"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build:
       context: ./backend
@@ -24,15 +8,13 @@ services:
     environment:
       SECRET_KEY: change-me
       JWT_SECRET_KEY: change-me-too
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/circlk
+      DATABASE_URL: mongodb+srv://gowtham:JBwPSaL4vDab5qS6@cluster0.pudoe.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&authSource=admin
+      MONGODB_DB_NAME: circlk
       CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
       PLATFORM_FEE_PERCENT: 5.0
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     ports:
       - "5000:5000"
-    depends_on:
-      db:
-        condition: service_healthy
 
   frontend:
     image: node:20-alpine
@@ -49,5 +31,4 @@ services:
       - backend
 
 volumes:
-  pgdata:
   frontend_node_modules:

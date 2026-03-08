@@ -10,7 +10,7 @@ from decimal import Decimal
 from typing import Dict
 
 from .extensions import db
-from .models import Event
+from .models import to_decimal128
 
 
 REQUIRED_FIELDS = [
@@ -130,7 +130,7 @@ class EventChatService:
         prompt = f"""
 You are an event-creation assistant.
 Extract any event fields from the user message and return only JSON with these keys:
-title, description, city, venue, category, event_time, base_price, capacity, image_url, intent, assistant_reply
+title, description, city, venue, address, duration, format, category, event_time, base_price, capacity, image_url, intent, assistant_reply
 
 Rules:
 - intent must be one of: collect, confirm, create, cancel.
@@ -203,6 +203,9 @@ User message:
             "description",
             "city",
             "venue",
+            "address",
+            "duration",
+            "format",
             "category",
             "event_time",
             "base_price",
@@ -249,27 +252,32 @@ User message:
                 )
             }
 
-        event = Event(
-            title=str(session.data["title"]).strip(),
-            description=str(session.data["description"]).strip(),
-            city=str(session.data["city"]).strip(),
-            venue=str(session.data["venue"]).strip(),
-            category=str(session.data["category"]).strip(),
-            image_url=(str(session.data.get("image_url") or "").strip() or None),
-            event_time=event_time,
-            base_price=base_price,
-            capacity=capacity,
-            host_id=user_id,
-        )
-        db.session.add(event)
-        db.session.commit()
+        event = {
+            "id": db.next_id("events"),
+            "title": str(session.data["title"]).strip(),
+            "description": str(session.data["description"]).strip(),
+            "city": str(session.data["city"]).strip(),
+            "venue": str(session.data["venue"]).strip(),
+            "address": (str(session.data.get("address") or "").strip() or None),
+            "duration": (str(session.data.get("duration") or "").strip() or None),
+            "format": (str(session.data.get("format") or "").strip() or None),
+            "category": str(session.data["category"]).strip(),
+            "image_url": (str(session.data.get("image_url") or "").strip() or None),
+            "event_time": event_time,
+            "base_price": to_decimal128(base_price),
+            "capacity": capacity,
+            "host_id": user_id,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        }
+        db.collection("events").insert_one(event)
 
         session.data = {}
         session.awaiting_confirmation = False
 
         return {
             "assistant": "Event created successfully.",
-            "event_id": event.id,
+            "event_id": event["id"],
         }
 
 

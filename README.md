@@ -54,17 +54,36 @@ npm run dev
 
 Frontend runs on `http://localhost:5173`.
 
-## Docker Run (Backend + PostgreSQL)
+## Docker Run (Backend + Frontend)
 
 ```bash
 docker compose up --build
 ```
 
-Then initialize DB once:
+Then initialize MongoDB indexes once:
 
 ```bash
 docker compose exec backend flask --app manage.py init-db
 ```
+
+## Deploy on Render
+
+This repo now includes a Render Blueprint file: `render.yaml`.
+
+1. Push this repo to GitHub/GitLab.
+2. In Render, click **New +** -> **Blueprint**.
+3. Select your repo and deploy.
+4. Set these backend env vars in Render:
+   - `SECRET_KEY`
+   - `JWT_SECRET_KEY`
+   - `DATABASE_URL` (your MongoDB connection string)
+   - `MONGODB_DB_NAME` (for example: `circlk`)
+   - `CORS_ORIGINS` (set to your frontend Render URL, for example: `https://circlk-frontend.onrender.com`)
+   - `OPENAI_API_KEY` (if chat features are used)
+5. Set frontend env var:
+   - `VITE_API_BASE` = `https://<your-backend-service>.onrender.com/api`
+6. After first backend deploy, run once in Render Shell:
+   - `flask --app manage.py init-db`
 
 ## Scaling Notes (Target: ~1000 concurrent users)
 
